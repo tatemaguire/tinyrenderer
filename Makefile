@@ -16,6 +16,10 @@ $(DESTDIR)$(TARGET): $(OBJECTS)
 $(OBJECTS): %.o: %.cpp
 	$(SYSCONF_LINK) -Wall $(CPPFLAGS) -c $(CFLAGS) $< -o $@
 
+preview: $(DESTDIR)$(TARGET)
+	$(DESTDIR)$(TARGET)
+	open *.tga
+
 clean:
 	-rm -f $(OBJECTS)
 	-rm -f $(TARGET)
