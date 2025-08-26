@@ -62,7 +62,7 @@ void line(Vec2i v0, Vec2i v1, TGAImage& image, const TGAColor& color) {
 
 // Gets barycentric coordinates of P within the triangle defined by pts
 // pts must have length 3
-Vec3f barycentric(Vec2i* pts, Vec2i P) {
+Vec3f barycentric(Vec3f* pts, Vec2i P) {
 	Vec3f vx = Vec3f(pts[2].x - pts[0].x, pts[1].x - pts[0].x, pts[0].x - P.x);
 	Vec3f vy = Vec3f(pts[2].y - pts[0].y, pts[1].y - pts[0].y, pts[0].y - P.y);
 	Vec3f u = vx^vy; // cross product
@@ -76,29 +76,54 @@ Vec3f barycentric(Vec2i* pts, Vec2i P) {
 	return b;
 }
 
-void triangle(Vec2i pts[], TGAImage& image, const TGAColor& color) {
+void triangle(Vec3f screen_pos[], int* zbuffer, TGAImage& image, const TGAColor& color) {
+	int w = image.get_width();
+
 	// find bounding box
 	Vec2i bboxmin = Vec2i(image.get_width()-1, image.get_height()-1);
 	Vec2i bboxmax = Vec2i(0, 0);
 	for (int i=0; i<3; i++) {
-		if (pts[i].x < bboxmin.x) bboxmin.x = pts[i].x;
-		if (pts[i].y < bboxmin.y) bboxmin.y = pts[i].y;
-		if (pts[i].x > bboxmax.x) bboxmax.x = pts[i].x;
-		if (pts[i].y > bboxmax.y) bboxmax.y = pts[i].y;
+		if (screen_pos[i].x < bboxmin.x) bboxmin.x = screen_pos[i].x;
+		if (screen_pos[i].y < bboxmin.y) bboxmin.y = screen_pos[i].y;
+		if (screen_pos[i].x > bboxmax.x) bboxmax.x = screen_pos[i].x;
+		if (screen_pos[i].y > bboxmax.y) bboxmax.y = screen_pos[i].y;
 	}
 	
 	// draw
 	Vec2i P;
 	for (P.x=bboxmin.x; P.x<=bboxmax.x; P.x++) {
 		for (P.y=bboxmin.y; P.y<=bboxmax.y; P.y++) {
-			Vec3f b = barycentric(pts, P);
+			Vec3f b = barycentric(screen_pos, P);
 			const float EPS = 1e-5;
+			// if pixel is inside the triangle
 			if (b.x>=-EPS && b.y>=-EPS && b.z>=-EPS) {
-				image.set(P.x, P.y, color);
+				int z = b * Vec3f(screen_pos[0].z, screen_pos[1].z, screen_pos[2].z);
+				// if pixel is in front of the current pixel at x,y
+				if (z>zbuffer[P.x+P.y*w]) {
+					zbuffer[P.x+P.y*w] = z;
+					image.set(P.x, P.y, color);
+				}
 			}
 		}
 	}
 }
+
+void rasterize(Vec3f world_pos[], int* zbuffer, TGAImage& image, const TGAColor& color) {
+	int w = image.get_width();
+	int scale = w; // the pixels per unit of obj file
+
+	// calculate screen positions
+	Vec3f screen_pos[3];
+	for (int i=0; i<3; i++) {
+		screen_pos[i].x = (world_pos[i].x+1)*scale/2;
+		screen_pos[i].y = (world_pos[i].y+1)*scale/2;
+		screen_pos[i].z = (world_pos[i].z+1)*scale/2;
+	}
+
+	triangle(screen_pos, zbuffer, image, color);
+}
+
+
 
 void wireframe(Model *model, TGAImage& image, const TGAColor& color) {
     for (int i=0; i<model->nfaces(); i++) {
@@ -119,17 +144,34 @@ void wireframe(Model *model, TGAImage& image, const TGAColor& color) {
 	}
 }
 
-void tri_render_test(Model* model, TGAImage& image) {
-    for (int i=0; i<model->nfaces(); i++) {
+// draws the model using the light_source vector, describing light's direction as a normalized vec3f
+void tri_render_light(Model* model, TGAImage& image, Vec3f light_source) {
+	int w = image.get_width();
+	int h = image.get_height();
+	
+	// create zbuffer
+	int* zbuffer = new int[w*h];
+	for (int i=0; i<w; i++) {
+		for (int j=0; j<h; j++) {
+			zbuffer[i+j*w] = std::numeric_limits<int>::min();
+		}
+	}
+
+	for (int i=0; i<model->nfaces(); i++) {
         std::vector<int> f = model->face(i);
-        Vec2i pts[3];
-        for (int j=0; j<3; j++) {
-            Vec3f v = model->vert(f[j]);
-            v.x = (v.x+1.)*image.get_width()/2;
-            v.y = (v.y+1.)*image.get_height()/2;
-            pts[j] = Vec2i(v.x, v.y);
-        }
-        TGAColor random_color = TGAColor(rand()%255, rand()%255, rand()%255, 255);
-        triangle(pts, image, random_color);
+		Vec3f world_pos[3];
+		for (int i=0; i<3; i++) {
+			world_pos[i] = model->vert(f[i]);
+		}
+		// calculate the normal. the direction of the triangle's face
+		Vec3f normal = (world_pos[1]-world_pos[0])^(world_pos[2]-world_pos[0]);
+		normal.normalize();
+		// calculate the light level by dot product. the more parallel, the brighter
+		// float light_level = normal.x*light_source.x + normal.y*light_source.y + normal.z*light_source.z;
+		float light_level = normal*(Vec3f()-light_source);
+		if (light_level<=0) continue;
+
+		TGAColor color = TGAColor(light_level*255, light_level*255, light_level*255, 255);
+        rasterize(world_pos, zbuffer, image, color);
     }
 }
