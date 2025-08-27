@@ -60,7 +60,7 @@ void line(Vec2i v0, Vec2i v1, TGAImage& image, const TGAColor& color) {
 	line(v0.x, v0.y, v1.x, v1.y, image, color);
 }
 
-// Gets barycentric coordinates of P within the triangle defined by pts
+// Gets barycentric coordinates of P within the triangle defined by pts (screen coords)
 // pts must have length 3
 Vec3f barycentric(Vec3f* pts, Vec2i P) {
 	Vec3f vx = Vec3f(pts[2].x - pts[0].x, pts[1].x - pts[0].x, pts[0].x - P.x);
@@ -76,9 +76,8 @@ Vec3f barycentric(Vec3f* pts, Vec2i P) {
 	return b;
 }
 
-void triangle(Vec3f screen_pos[], int* zbuffer, TGAImage& image, const TGAColor& color) {
-	int w = image.get_width();
-
+// simple triangle draw
+void triangle(Vec3f screen_pos[], TGAImage& image, const TGAColor& color) {
 	// find bounding box
 	Vec2i bboxmin = Vec2i(image.get_width()-1, image.get_height()-1);
 	Vec2i bboxmax = Vec2i(0, 0);
@@ -95,12 +94,43 @@ void triangle(Vec3f screen_pos[], int* zbuffer, TGAImage& image, const TGAColor&
 		for (P.y=bboxmin.y; P.y<=bboxmax.y; P.y++) {
 			Vec3f b = barycentric(screen_pos, P);
 			const float EPS = 1e-5;
+			if (b.x>=-EPS && b.y>=-EPS && b.z>=-EPS) {
+				image.set(P.x, P.y, color);
+			}
+		}
+	}
+}
+
+// triangle draw with zbuffer and model_uv
+void triangle(Vec3f screen_pos[], int* zbuffer, Vec2f vt[], TGAImage& model_uv, TGAImage& image, float light_level) {
+	int w = image.get_width();
+
+	// find bounding box
+	Vec2i bboxmin = Vec2i(image.get_width()-1, image.get_height()-1);
+	Vec2i bboxmax = Vec2i(0, 0);
+	for (int i=0; i<3; i++) {
+		if (screen_pos[i].x < bboxmin.x) bboxmin.x = screen_pos[i].x;
+		if (screen_pos[i].y < bboxmin.y) bboxmin.y = screen_pos[i].y;
+		if (screen_pos[i].x > bboxmax.x) bboxmax.x = screen_pos[i].x;
+		if (screen_pos[i].y > bboxmax.y) bboxmax.y = screen_pos[i].y;
+	}
+
+	// draw
+	Vec2i P;
+	for (P.x=bboxmin.x; P.x<=bboxmax.x; P.x++) {
+		for (P.y=bboxmin.y; P.y<=bboxmax.y; P.y++) {
+			Vec3f b = barycentric(screen_pos, P);
+			const float EPS = 1e-5;
 			// if pixel is inside the triangle
 			if (b.x>=-EPS && b.y>=-EPS && b.z>=-EPS) {
 				int z = b * Vec3f(screen_pos[0].z, screen_pos[1].z, screen_pos[2].z);
 				// if pixel is in front of the current pixel at x,y
 				if (z>zbuffer[P.x+P.y*w]) {
 					zbuffer[P.x+P.y*w] = z;
+					float u = b * Vec3f(vt[0].u, vt[1].u, vt[2].u);
+					float v = b * Vec3f(vt[0].v, vt[1].v, vt[2].v);
+					TGAColor color = model_uv.get(u*model_uv.get_width(), v*model_uv.get_height());
+					color = TGAColor(color.r*light_level, color.g*light_level, color.b*light_level, color.a);
 					image.set(P.x, P.y, color);
 				}
 			}
@@ -108,7 +138,8 @@ void triangle(Vec3f screen_pos[], int* zbuffer, TGAImage& image, const TGAColor&
 	}
 }
 
-void rasterize(Vec3f world_pos[], int* zbuffer, TGAImage& image, const TGAColor& color) {
+// rasterize triangle, translate to screen coords and draw
+void rasterize(Vec3f world_pos[], int* zbuffer, Vec2f vt[], TGAImage& model_uv, TGAImage& image, float light_level) {
 	int w = image.get_width();
 	int scale = w; // the pixels per unit of obj file
 
@@ -120,17 +151,17 @@ void rasterize(Vec3f world_pos[], int* zbuffer, TGAImage& image, const TGAColor&
 		screen_pos[i].z = (world_pos[i].z+1)*scale/2;
 	}
 
-	triangle(screen_pos, zbuffer, image, color);
+	triangle(screen_pos, zbuffer, vt, model_uv, image, light_level);
 }
 
 
-
+// draw wireframe
 void wireframe(Model *model, TGAImage& image, const TGAColor& color) {
     for (int i=0; i<model->nfaces(); i++) {
-        std::vector<int> face = model->face(i);
+        std::vector<Vec3i> face = model->face(i);
 		for (int j=0; j<3; j++) {
-            Vec3f v0 = model->vert(face[j]);
-			Vec3f v1 = model->vert(face[(j+1)%3]);
+            Vec3f v0 = model->vert(face[j].ivert);
+			Vec3f v1 = model->vert(face[(j+1)%3].ivert);
             
             int w = image.get_width();
             int h = image.get_height();
@@ -145,7 +176,7 @@ void wireframe(Model *model, TGAImage& image, const TGAColor& color) {
 }
 
 // draws the model using the light_source vector, describing light's direction as a normalized vec3f
-void tri_render_light(Model* model, TGAImage& image, Vec3f light_source) {
+void render(Model* model, TGAImage& model_uv, TGAImage& image, Vec3f light_source) {
 	int w = image.get_width();
 	int h = image.get_height();
 	
@@ -158,10 +189,12 @@ void tri_render_light(Model* model, TGAImage& image, Vec3f light_source) {
 	}
 
 	for (int i=0; i<model->nfaces(); i++) {
-        std::vector<int> f = model->face(i);
+        std::vector<Vec3i> f = model->face(i);
 		Vec3f world_pos[3];
+		Vec2f vt[3];
 		for (int i=0; i<3; i++) {
-			world_pos[i] = model->vert(f[i]);
+			world_pos[i] = model->vert(f[i].ivert);
+			vt[i] = model->texture_vert(f[i].iuv);
 		}
 		// calculate the normal. the direction of the triangle's face
 		Vec3f normal = (world_pos[1]-world_pos[0])^(world_pos[2]-world_pos[0]);
@@ -171,7 +204,8 @@ void tri_render_light(Model* model, TGAImage& image, Vec3f light_source) {
 		float light_level = normal*(Vec3f()-light_source);
 		if (light_level<=0) continue;
 
-		TGAColor color = TGAColor(light_level*255, light_level*255, light_level*255, 255);
-        rasterize(world_pos, zbuffer, image, color);
+        rasterize(world_pos, zbuffer, vt, model_uv, image, light_level);
     }
+
+	delete[] zbuffer;
 }

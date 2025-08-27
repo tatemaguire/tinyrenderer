@@ -1,3 +1,5 @@
+// Author: Dimitry V. Sokolov (I think?)
+
 #ifndef __GEOMETRY_H__
 #define __GEOMETRY_H__
 
