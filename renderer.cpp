@@ -139,16 +139,13 @@ void triangle(Vec3f screen_pos[], int* zbuffer, Vec2f vt[], TGAImage& model_uv, 
 }
 
 // rasterize triangle, translate to screen coords and draw
-void rasterize(Vec3f world_pos[], int* zbuffer, Vec2f vt[], TGAImage& model_uv, TGAImage& image, float light_level) {
-	int w = image.get_width();
-	int scale = w; // the pixels per unit of obj file
-
+void rasterize(Vec3f world_pos[], int* zbuffer, Vec2f vt[], TGAImage& model_uv, TGAImage& image, float light_level, float scale) {
 	// calculate screen positions
 	Vec3f screen_pos[3];
 	for (int i=0; i<3; i++) {
-		screen_pos[i].x = (world_pos[i].x+1)*scale/2;
-		screen_pos[i].y = (world_pos[i].y+1)*scale/2;
-		screen_pos[i].z = (world_pos[i].z+1)*scale/2;
+		screen_pos[i].x = (world_pos[i].x+1)*scale;
+		screen_pos[i].y = (world_pos[i].y+1)*scale;
+		screen_pos[i].z = (world_pos[i].z+1)*scale;
 	}
 
 	triangle(screen_pos, zbuffer, vt, model_uv, image, light_level);
@@ -188,6 +185,10 @@ void render(Model* model, TGAImage& model_uv, TGAImage& image, Vec3f light_sourc
 		}
 	}
 
+	// calculate scale
+	float scale = w/std::abs(model->max.x-model->min.x);
+	scale = std::min(scale, h/std::abs(model->max.y-model->min.y));
+
 	for (int i=0; i<model->nfaces(); i++) {
         std::vector<Vec3i> f = model->face(i);
 		Vec3f world_pos[3];
@@ -204,7 +205,7 @@ void render(Model* model, TGAImage& model_uv, TGAImage& image, Vec3f light_sourc
 		float light_level = normal*(Vec3f()-light_source);
 		if (light_level<=0) continue;
 
-        rasterize(world_pos, zbuffer, vt, model_uv, image, light_level);
+        rasterize(world_pos, zbuffer, vt, model_uv, image, light_level, scale);
     }
 
 	delete[] zbuffer;

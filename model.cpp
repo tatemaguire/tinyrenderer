@@ -8,7 +8,11 @@
 #include <vector>
 #include "model.h"
 
-Model::Model(const char *filename) : verts_(), texture_verts_(), faces_() {
+Model::Model(const char *filename) : verts_(), texture_verts_(), faces_(), min(), max() {
+    for (int i=0; i<3; i++) {
+        min.raw[i] = std::numeric_limits<float>::max();
+        max.raw[i] = std::numeric_limits<float>::lowest();
+    }
     std::ifstream in;
     in.open (filename, std::ifstream::in);
     if (in.fail()) return;
@@ -20,7 +24,11 @@ Model::Model(const char *filename) : verts_(), texture_verts_(), faces_() {
         if (!line.compare(0, 2, "v ")) {
             iss >> trash;
             Vec3f v;
-            for (int i=0;i<3;i++) iss >> v.raw[i];
+            for (int i=0;i<3;i++) {
+                iss >> v.raw[i];
+                if (v.raw[i] < min.raw[i]) min.raw[i] = v.raw[i];
+                if (v.raw[i] > max.raw[i]) max.raw[i] = v.raw[i];
+            }
             verts_.push_back(v);
         } else if (!line.compare(0, 3, "vt ")) {
             Vec2f vt;

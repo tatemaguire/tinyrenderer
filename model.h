@@ -9,6 +9,7 @@ private:
 	std::vector<Vec3f> verts_;
 	std::vector<Vec2f> texture_verts_;
 	std::vector<std::vector<Vec3i>> faces_;
+	
 public:
 	Model(const char *filename);
 	~Model();
@@ -18,6 +19,8 @@ public:
 	Vec3f vert(int i);
 	Vec2f texture_vert(int i);
 	std::vector<Vec3i> face(int idx);
+	Vec3f min;
+	Vec3f max;
 };
 
 #endif //__MODEL_H__
