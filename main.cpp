@@ -21,25 +21,23 @@ const int height = 1000;
 
 
 int main(int argc, char** argv) {
-	if (argc == 2) {
+	if (argc >= 2) {
 		model = new Model(argv[1]);
-		model_uv.read_tga_file("obj/african_head_diffuse.tga");
-	} else if (argc == 3) {
-		model = new Model(argv[1]);
-		model_uv.read_tga_file(argv[2]);
 	} else {
 		model = new Model("obj/african_head.obj");
+	}
+	if (argc >= 3) {
+		model_uv.read_tga_file(argv[2]);
+	} else {
 		model_uv.read_tga_file("obj/african_head_diffuse.tga");
 	}
 	model_uv.flip_vertically();
 
 	TGAImage image = TGAImage(width, height, TGAImage::RGB);
 
-	// Vec2i pts[3] = {Vec2i(10,10), Vec2i(100, 30), Vec2i(190, 160)}; 
-    // triangle(pts, image, green);
-
 	Vec3f light_source = Vec3f(0, 0, -1);
-	render(model, model_uv, image, light_source);
+	Vec3f camera_pos = Vec3f(0, 0, 3);
+	render(model, model_uv, image, light_source, camera_pos);
 
 	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
 	image.scale(width, height);

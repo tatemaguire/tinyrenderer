@@ -104,9 +104,10 @@ void triangle(Vec3f screen_pos[], TGAImage& image, const TGAColor& color) {
 // triangle draw with zbuffer and model_uv
 void triangle(Vec3f screen_pos[], int* zbuffer, Vec2f vt[], TGAImage& model_uv, TGAImage& image, float light_level) {
 	int w = image.get_width();
+	int h = image.get_height();
 
 	// find bounding box
-	Vec2i bboxmin = Vec2i(image.get_width()-1, image.get_height()-1);
+	Vec2i bboxmin = Vec2i(w-1, h-1);
 	Vec2i bboxmax = Vec2i(0, 0);
 	for (int i=0; i<3; i++) {
 		if (screen_pos[i].x < bboxmin.x) bboxmin.x = screen_pos[i].x;
@@ -114,13 +115,17 @@ void triangle(Vec3f screen_pos[], int* zbuffer, Vec2f vt[], TGAImage& model_uv, 
 		if (screen_pos[i].x > bboxmax.x) bboxmax.x = screen_pos[i].x;
 		if (screen_pos[i].y > bboxmax.y) bboxmax.y = screen_pos[i].y;
 	}
+	if (bboxmin.x<0) bboxmin.x=0;
+	if (bboxmin.y<0) bboxmin.y=0;
+	if (bboxmax.x>w-1) bboxmax.x=w-1;
+	if (bboxmax.y>h-1) bboxmax.y=h-1;
 
 	// draw
 	Vec2i P;
 	for (P.x=bboxmin.x; P.x<=bboxmax.x; P.x++) {
 		for (P.y=bboxmin.y; P.y<=bboxmax.y; P.y++) {
 			Vec3f b = barycentric(screen_pos, P);
-			const float EPS = 1e-5;
+			const float EPS = 0;
 			// if pixel is inside the triangle
 			if (b.x>=-EPS && b.y>=-EPS && b.z>=-EPS) {
 				int z = b * Vec3f(screen_pos[0].z, screen_pos[1].z, screen_pos[2].z);
@@ -139,13 +144,18 @@ void triangle(Vec3f screen_pos[], int* zbuffer, Vec2f vt[], TGAImage& model_uv, 
 }
 
 // rasterize triangle, translate to screen coords and draw
-void rasterize(Vec3f world_pos[], int* zbuffer, Vec2f vt[], TGAImage& model_uv, TGAImage& image, float light_level, float scale) {
+void rasterize(Vec3f world_pos[], int* zbuffer, Vec2f vt[], TGAImage& model_uv, TGAImage& image, float light_level, float scale, Vec3f camera_pos) {
 	// calculate screen positions
+	for (int i=0; i<3; i++) {
+		// world_pos[i].z += 1;
+	}
 	Vec3f screen_pos[3];
 	for (int i=0; i<3; i++) {
-		screen_pos[i].x = (world_pos[i].x+1)*scale;
-		screen_pos[i].y = (world_pos[i].y+1)*scale;
-		screen_pos[i].z = (world_pos[i].z+1)*scale;
+		float coef = 1.-world_pos[i].z/(float)camera_pos.z;
+		coef = 1./coef;
+		screen_pos[i].x = (world_pos[i].x*coef+1)*scale;
+		screen_pos[i].y = (world_pos[i].y*coef+1)*scale;
+		screen_pos[i].z = (world_pos[i].z*coef+1)*scale;
 	}
 
 	triangle(screen_pos, zbuffer, vt, model_uv, image, light_level);
@@ -173,7 +183,7 @@ void wireframe(Model *model, TGAImage& image, const TGAColor& color) {
 }
 
 // draws the model using the light_source vector, describing light's direction as a normalized vec3f
-void render(Model* model, TGAImage& model_uv, TGAImage& image, Vec3f light_source) {
+void render(Model* model, TGAImage& model_uv, TGAImage& image, Vec3f light_source, Vec3f camera_pos) {
 	int w = image.get_width();
 	int h = image.get_height();
 	
@@ -205,7 +215,7 @@ void render(Model* model, TGAImage& model_uv, TGAImage& image, Vec3f light_sourc
 		float light_level = normal*(Vec3f()-light_source);
 		if (light_level<=0) continue;
 
-        rasterize(world_pos, zbuffer, vt, model_uv, image, light_level, scale);
+        rasterize(world_pos, zbuffer, vt, model_uv, image, light_level, scale, camera_pos);
     }
 
 	delete[] zbuffer;

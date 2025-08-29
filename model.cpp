@@ -8,7 +8,7 @@
 #include <vector>
 #include "model.h"
 
-Model::Model(const char *filename) : verts_(), texture_verts_(), faces_(), min(), max() {
+Model::Model(const char *filename) : verts_(), texture_verts_(), normal_verts_(), faces_(), min(), max() {
     for (int i=0; i<3; i++) {
         min.raw[i] = std::numeric_limits<float>::max();
         max.raw[i] = std::numeric_limits<float>::lowest();
@@ -35,6 +35,11 @@ Model::Model(const char *filename) : verts_(), texture_verts_(), faces_(), min()
             iss >> trash >> trash; // for some reason there's two spaces after vt
             for (int i=0; i<2; i++) iss >> vt.raw[i];
             texture_verts_.push_back(vt);
+        } else if (!line.compare(0, 3, "vn ")) {
+            Vec3f vn;
+            iss >> trash >> trash;
+            for (int i=0; i<3; i++) iss >> vn.raw[i];
+            normal_verts_.push_back(vn);
         } else if (!line.compare(0, 2, "f ")) {
             std::vector<Vec3i> f;
             int ivert, iuv, inorm;
@@ -61,6 +66,10 @@ int Model::ntexture_verts() {
     return (int)texture_verts_.size();
 }
 
+int Model::nnormal_verts() {
+    return (int)normal_verts_.size();
+}
+
 int Model::nfaces() {
     return (int)faces_.size();
 }
@@ -71,6 +80,10 @@ Vec3f Model::vert(int i) {
 
 Vec2f Model::texture_vert(int i) {
     return texture_verts_[i];
+}
+
+Vec3f Model::normal_vert(int i) {
+    return normal_verts_[i];
 }
 
 std::vector<Vec3i> Model::face(int idx) {
