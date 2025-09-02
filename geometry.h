@@ -54,4 +54,19 @@ template <class t> std::ostream& operator<<(std::ostream& s, Vec3<t>& v) {
 	return s;
 }
 
+// ------------------------------------------------------------------------------------
+// ------------------------------------ Matrix ----------------------------------------
+// ------------------------------------------------------------------------------------
+
+class Matrix {
+	std::vector<std::vector<float>> m;
+	int rows, cols;
+public:
+	Matrix(int r, int c);
+	int nrows() {return rows;}
+	int ncols() {return cols;}
+
+	Matrix identity(int size);
+};
+
 #endif //__GEOMETRY_H__

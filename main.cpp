@@ -10,10 +10,6 @@
 #include "renderer.h"
 
 // Globals
-const TGAColor white = TGAColor(255, 255, 255, 255);
-const TGAColor red   = TGAColor(255, 0,   0,   255);
-const TGAColor green = TGAColor(0,   255, 0,   0  );
-const TGAColor blue  = TGAColor(0,   0,   255, 0  );
 Model *model = NULL;
 TGAImage model_uv;
 const int width  = 1000;
@@ -33,11 +29,10 @@ int main(int argc, char** argv) {
 	}
 	model_uv.flip_vertically();
 
+	// create image
 	TGAImage image = TGAImage(width, height, TGAImage::RGB);
-
-	Vec3f light_source = Vec3f(0, 0, -1);
-	Vec3f camera_pos = Vec3f(0, 0, 3);
-	render(model, model_uv, image, light_source, camera_pos);
+	// render model
+	render(model, model_uv, image, Vec3f(0,0,-1), Vec3f(0,0,3));
 
 	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
 	image.scale(width, height);
