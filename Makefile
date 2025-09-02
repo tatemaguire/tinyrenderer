@@ -20,6 +20,9 @@ preview: $(DESTDIR)$(TARGET)
 	$(DESTDIR)$(TARGET)
 	open *.tga
 
+$(DESTDIR)matrixTest: matrixTest.o geometry.o
+	$(SYSCONF_LINK) -Wall $(LDFLAGS) -o $(DESTDIR)matrixTest matrixTest.o geometry.o $(LIBS)
+
 clean:
 	-rm -f $(OBJECTS)
 	-rm -f $(TARGET)
