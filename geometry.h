@@ -4,6 +4,7 @@
 #define __GEOMETRY_H__
 
 #include <cmath>
+#include <iostream>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -59,14 +60,24 @@ template <class t> std::ostream& operator<<(std::ostream& s, Vec3<t>& v) {
 // ------------------------------------------------------------------------------------
 
 class Matrix {
-	std::vector<std::vector<float>> m;
-	int rows, cols;
+	float* m;
+	const int rows, cols;
+	int getindex(int r, int c) const;
 public:
 	Matrix(int r, int c);
-	int nrows() {return rows;}
-	int ncols() {return cols;}
+	static Matrix identity(int size);
+	~Matrix();
 
-	Matrix identity(int size);
+	float& get(int r, int c) const;
+	void set(int r, int c, float val);
+	int nrows() const {return rows;}
+	int ncols() const {return cols;}
+
+	Matrix operator*(const Matrix& b) const;
+	Matrix operator*(const float b) const;
+	Matrix& operator=(const Matrix& m);
+	Matrix& operator*=(const float b);
+	friend std::ostream& operator<<(std::ostream& s, const Matrix& m);
 };
 
 #endif //__GEOMETRY_H__

@@ -20,12 +20,12 @@ int main(int argc, char** argv) {
 	if (argc >= 2) {
 		model = new Model(argv[1]);
 	} else {
-		model = new Model("obj/african_head.obj");
+		model = new Model("obj/african_head/african_head.obj");
 	}
 	if (argc >= 3) {
 		model_uv.read_tga_file(argv[2]);
 	} else {
-		model_uv.read_tga_file("obj/african_head_diffuse.tga");
+		model_uv.read_tga_file("obj/african_head/african_head_diffuse.tga");
 	}
 	model_uv.flip_vertically();
 
