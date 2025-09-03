@@ -1,9 +1,16 @@
 // Author: Tate Maguire
-// September 1, 2025
+// September 3, 2025
 
 #include "geometry.h"
 #include <vector>
 #include <cmath>
+#include <limits>
+#include <cassert>
+#include <sstream>
+
+Matrix::Matrix(): rows{0}, cols{0} {
+    m = new float[0];
+}
 
 Matrix::Matrix(int r, int c): rows{r}, cols{c} {
     if (r<0 || c<0) {
@@ -18,6 +25,22 @@ Matrix::Matrix(int r, int c, float vals[]): rows{r}, cols{c} {
     }
     m = new float[r*c];
     set(vals);
+}
+
+Matrix::Matrix(int r, int c, std::string vals): rows{r}, cols{c} {
+    if (r<0 || c<0) {
+        throw std::domain_error("Matrix construction: both dimensions must be > 0");
+    }
+    m = new float[r*c];
+    char trash;
+    std::istringstream iss {vals.c_str()};
+    for (int i=0; i<r; i++) {
+        for (int j=0; j<c; j++) {
+            float val;
+            iss >> val >> trash;
+            m[getindex(i, j)] = val;
+        }
+    }
 }
 
 Matrix::Matrix(const Matrix& mat): rows{mat.nrows()}, cols{mat.ncols()} {
@@ -54,7 +77,8 @@ float& Matrix::get(int r, int c) const {
     if (r<0 || r>=rows || c<0 || c>=cols) {
         throw std::domain_error("Matrix: get(): row or column out of domain");
     }
-    return m[getindex(r, c)];
+    float& val = m[getindex(r, c)];
+    return val;
 }
 
 void Matrix::set(int r, int c, float val) {
@@ -86,9 +110,12 @@ void Matrix::scale_row(int r, float s) {
     }
 }
 
-void Matrix::add_to_row(int to, int from, float s) {
+void Matrix::add_row_scaled(int from, float scale, int to) {
     for (int i=0; i<cols; i++) {
-        get(to, i) += get(from, i) * s;
+        float& elem = get(to, i);
+        elem += get(from, i) * scale;
+        // if close to zero set to zero
+        if (std::abs(elem) < 1e-5) elem = 0;
     }
 }
 
@@ -106,10 +133,68 @@ Matrix Matrix::inverse() const {
     if (rows != cols) throw std::domain_error("Matrix: inverse(): matrix must be a square matrix (rows==cols)");
 
     int size = rows;
-    // Matrix A {3, 3}, B {3, 3};
     Matrix A = *this;
     Matrix B = Matrix::identity(size);
 
+    int current_row = 0;
+    // first pass of gaussian elimination
+    for (int col=0; col<size; col++) {
+        // bring first row with non-zero entry up to current_row
+        bool zero_col = true;
+        for (int row=current_row; row<size; row++) {
+            if (A.get(row, col) != 0) {
+                A.swap_rows(current_row, row);
+                B.swap_rows(current_row, row);
+                zero_col = false;
+                break;
+            }
+        }
+        if (zero_col) continue;
+        assert(A.get(current_row, col) != 0);
+        // make all rows below current_row have a zero in this column
+        for (int row=current_row+1; row<size; row++) {
+            if (A.get(row, col) != 0) {
+                float scale = -A.get(row, col)/A.get(current_row, col);
+                A.add_row_scaled(current_row, scale, row);
+                B.add_row_scaled(current_row, scale, row);
+            }
+            assert(A.get(row, col) == 0);
+        }
+        // scale current_row to have the pivot entry 1
+        float scale = 1.f/A.get(current_row, col);
+        A.scale_row(current_row, scale);
+        B.scale_row(current_row, scale);
+
+        // std::cout << current_row << ": \n" << A << std::endl << std::endl;
+
+        current_row++;
+        if (current_row == size) break;
+    }
+
+    // A is now in row echelon form
+    // second pass of gaussian elimination
+    for (current_row=size-1; current_row>=0; current_row--) {
+        for (int col=0; col<size; col++) {
+            if (A.get(current_row, col) != 0) {
+                for (int row=current_row-1; row>=0; row--) {
+                    if (A.get(row, col) != 0) {
+                        float scale = -A.get(row, col)/A.get(current_row, col);
+                        A.add_row_scaled(current_row, scale, row);
+                        B.add_row_scaled(current_row, scale, row);
+                    }
+                    assert(A.get(row, col) == 0);
+                }
+                break;
+            }
+        }
+    }
+
+    // A is now in reduced row echelon form, check if it is the identity matrix
+    if (A != Matrix::identity(size)) {
+        // if not identity, there is no inverse
+        throw std::domain_error("Matrix: inverse(): this matrix has no inverse");
+    }
+    // B is now the inverse of *this
     return B;
 }
 
@@ -158,7 +243,8 @@ bool Matrix::operator==(const Matrix& b) const {
     }
     for (int i=0; i<rows; i++) {
         for (int j=0; j<cols; j++) {
-            if (this->get(i, j) != b.get(i, j)) {
+            float diff = this->get(i, j) - b.get(i, j);
+            if (std::abs(diff) > 1e-5) {
                 return false;
             }
         }
@@ -166,12 +252,18 @@ bool Matrix::operator==(const Matrix& b) const {
     return true;
 }
 
+bool Matrix::operator!=(const Matrix& b) const {
+    return !(*this == b);
+}
+
 std::ostream& operator<<(std::ostream& s, const Matrix& m) {
     s << '[';
     for (int r=0; r<m.nrows(); r++) {
         for (int c=0; c<m.ncols(); c++) {
-            auto val = std::to_string(m.get(r, c)).substr(0, 5);
-            s << val << (c == m.ncols()-1 ? "," : ",\t");
+            float val = m.get(r, c);
+            if (val == 0) val = 0; // turn negative zero into positive zero
+            std::string str = std::to_string(val).substr(0,5);
+            s << str << (c == m.ncols()-1 ? "," : ", ");
         }
         s << (r == m.nrows()-1 ? "]" : "\n ");
     }

@@ -1,4 +1,6 @@
-// Author: Dimitry V. Sokolov (I think?)
+// Vector Author: Dimitry V. Sokolov (I think?)
+// Matrix Author: Tate Maguire
+// September 3, 2025
 
 #ifndef __GEOMETRY_H__
 #define __GEOMETRY_H__
@@ -66,8 +68,10 @@ class Matrix {
 
 	// in-place row operations
 public:
+	Matrix();
 	Matrix(int r, int c);
 	Matrix(int r, int c, float vals[]);
+	Matrix(int r, int c, std::string vals);
 	Matrix(const Matrix& mat);
 	static Matrix identity(int size);
 	~Matrix();
@@ -79,7 +83,7 @@ public:
 	int ncols() const {return cols;}
 
 	void scale_row(int r, float s);
-	void add_to_row(int to, int from, float s);
+	void add_row_scaled(int from, float scale, int to);
 	void swap_rows(int r1, int r2);
 
 	Matrix transpose() const;
@@ -90,6 +94,7 @@ public:
 	Matrix& operator=(const Matrix& m);
 	Matrix& operator*=(const float b);
 	bool operator==(const Matrix& b) const;
+	bool operator!=(const Matrix& b) const;
 	friend std::ostream& operator<<(std::ostream& s, const Matrix& m);
 };
 
