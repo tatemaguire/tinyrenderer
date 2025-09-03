@@ -42,6 +42,16 @@ void Matrix::set(int r, int c, float val) {
     m[getindex(r, c)] = val;
 }
 
+Matrix Matrix::transpose() {
+    Matrix T {cols, rows};
+    for (int i=0; i<rows; i++) {
+        for (int j=0; j<cols; j++) {
+            T.set(j, i, this->get(i, j));
+        }
+    }
+    return T;
+}
+
 Matrix Matrix::operator*(const Matrix& b) const {
     if (this->cols != b.rows) throw std::domain_error("Matrix operator *: invalid matrix sizes");
     Matrix c = Matrix(this->rows, b.cols);

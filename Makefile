@@ -26,5 +26,6 @@ $(DESTDIR)matrixTest: matrixTest.o geometry.o
 clean:
 	-rm -f $(OBJECTS)
 	-rm -f $(TARGET)
+	-rm -f matrixTest
 	-rm -f *.tga
 

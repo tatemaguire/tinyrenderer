@@ -99,8 +99,7 @@ void render(Model* model, TGAImage& model_uv, TGAImage& image, Vec3f light_sourc
 	}
 
 	// calculate scale
-	float scale = w/std::abs(model->max.x-model->min.x);
-	scale = std::min(scale, h/std::abs(model->max.y-model->min.y));
+	float scale = image.get_width()/2;
 
 	for (int i=0; i<model->nfaces(); i++) {
         std::vector<Vec3i> f = model->face(i);

@@ -73,6 +73,9 @@ public:
 	int nrows() const {return rows;}
 	int ncols() const {return cols;}
 
+	Matrix transpose();
+	Matrix inverse();
+
 	Matrix operator*(const Matrix& b) const;
 	Matrix operator*(const float b) const;
 	Matrix& operator=(const Matrix& m);
