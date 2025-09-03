@@ -63,23 +63,33 @@ class Matrix {
 	float* m;
 	const int rows, cols;
 	int getindex(int r, int c) const;
+
+	// in-place row operations
 public:
 	Matrix(int r, int c);
+	Matrix(int r, int c, float vals[]);
+	Matrix(const Matrix& mat);
 	static Matrix identity(int size);
 	~Matrix();
 
 	float& get(int r, int c) const;
 	void set(int r, int c, float val);
+	void set(float vals[]);
 	int nrows() const {return rows;}
 	int ncols() const {return cols;}
 
-	Matrix transpose();
-	Matrix inverse();
+	void scale_row(int r, float s);
+	void add_to_row(int to, int from, float s);
+	void swap_rows(int r1, int r2);
+
+	Matrix transpose() const;
+	Matrix inverse() const;
 
 	Matrix operator*(const Matrix& b) const;
 	Matrix operator*(const float b) const;
 	Matrix& operator=(const Matrix& m);
 	Matrix& operator*=(const float b);
+	bool operator==(const Matrix& b) const;
 	friend std::ostream& operator<<(std::ostream& s, const Matrix& m);
 };
 

@@ -5,19 +5,41 @@
 #include <vector>
 #include <cmath>
 
-Matrix::Matrix(int r, int c): rows(r), cols(c) {
+Matrix::Matrix(int r, int c): rows{r}, cols{c} {
     if (r<0 || c<0) {
         throw std::domain_error("Matrix construction: both dimensions must be > 0");
     }
     m = new float[r*c]{0};
 }
 
-Matrix Matrix::identity(int size) {
-    Matrix m = Matrix(size, size);
-    for (int i=0; i<size; i++) {
-        m.set(i, i, 1);
+Matrix::Matrix(int r, int c, float vals[]): rows{r}, cols{c} {
+    if (r<0 || c<0) {
+        throw std::domain_error("Matrix construction: both dimensions must be > 0");
     }
-    return m;
+    m = new float[r*c];
+    set(vals);
+}
+
+Matrix::Matrix(const Matrix& mat): rows{mat.nrows()}, cols{mat.ncols()} {
+    m = new float[rows*cols];
+    for (int i=0; i<rows; i++) {
+        for (int j=0; j<cols; j++) {
+            m[getindex(i, j)] = mat.get(i, j);
+        }
+    }
+}
+
+Matrix Matrix::identity(int size) {
+    if (size<0) throw std::domain_error("Matrix: identity(): size must be >0");
+    float* vals = new float[size*size];
+    for (int i=0; i<size; i++) {
+        for (int j=0; j<size; j++) {
+            vals[i + j*size] = i==j ? 1 : 0;
+        }
+    }
+    Matrix mat = Matrix(size, size, vals);
+    delete[] vals;
+    return mat;
 }
 
 Matrix::~Matrix() {
@@ -42,7 +64,35 @@ void Matrix::set(int r, int c, float val) {
     m[getindex(r, c)] = val;
 }
 
-Matrix Matrix::transpose() {
+// vals must be of length rows*cols
+void Matrix::set(float vals[]) {
+    for (int i=0; i<rows; i++) {
+        for (int j=0; j<cols; j++) {
+            m[getindex(i, j)] = vals[j + i*cols];
+        }
+    }
+}
+
+// in-place row operations
+void Matrix::swap_rows(int r1, int r2) {
+    for (int i=0; i<cols; i++) {
+        std::swap(get(r1, i), get(r2, i));
+    }
+}
+
+void Matrix::scale_row(int r, float s) {
+    for (int i=0; i<cols; i++) {
+        get(r, i) *= s;
+    }
+}
+
+void Matrix::add_to_row(int to, int from, float s) {
+    for (int i=0; i<cols; i++) {
+        get(to, i) += get(from, i) * s;
+    }
+}
+
+Matrix Matrix::transpose() const {
     Matrix T {cols, rows};
     for (int i=0; i<rows; i++) {
         for (int j=0; j<cols; j++) {
@@ -50,6 +100,17 @@ Matrix Matrix::transpose() {
         }
     }
     return T;
+}
+
+Matrix Matrix::inverse() const {
+    if (rows != cols) throw std::domain_error("Matrix: inverse(): matrix must be a square matrix (rows==cols)");
+
+    int size = rows;
+    // Matrix A {3, 3}, B {3, 3};
+    Matrix A = *this;
+    Matrix B = Matrix::identity(size);
+
+    return B;
 }
 
 Matrix Matrix::operator*(const Matrix& b) const {
@@ -89,6 +150,20 @@ Matrix& Matrix::operator=(const Matrix& m) {
 Matrix& Matrix::operator*=(const float b) {
     Matrix c = *this * b;
     return *this = c;
+}
+
+bool Matrix::operator==(const Matrix& b) const {
+    if (this->rows != b.rows || this->cols != b.cols) {
+        return false;
+    }
+    for (int i=0; i<rows; i++) {
+        for (int j=0; j<cols; j++) {
+            if (this->get(i, j) != b.get(i, j)) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 std::ostream& operator<<(std::ostream& s, const Matrix& m) {
