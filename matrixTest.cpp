@@ -4,70 +4,91 @@
 #include <iostream>
 #include "geometry.h"
 
-int matrixTest(int argc, char* argv[]) {
-    Matrix matthew = Matrix(4, 4);
-    matthew.set(0, 3, 1445.5);
-    matthew.set(0, 1, 1.5382);
-    matthew.set(2, 1, 1382);
+using std::cout;
+using std::endl;
 
-    Matrix maddie = Matrix::identity(4);
-    maddie.set(0, 0, 2);
-    maddie *= 2;
+int main(int argc, char* argv[]) {
 
-    matthew.get(0, 1) += 3;
 
-    std::cout << matthew << std::endl << std::endl;
-    std::cout << maddie << std::endl << std::endl;
-    std::cout << maddie*matthew << std::endl<<std::endl;
+    Matrix H = Matrix({
+        {2,5,0,8},
+        {1,4,2,6},
+        {7,8,9,3},
+        {1,5,7,8}});
 
-    Matrix madthew = maddie*matthew;
-    madthew = madthew.transpose();
-    std::cout << madthew <<std::endl<<std::endl;
+    cout << H << endl;
     
-    madthew.swap_rows(0, 1);
-    std::cout << madthew <<std::endl<<std::endl;
+    // Test: Empty matrix
+    Matrix G;
+    cout << G << endl;
+    // Test: Copy assignment
+    G = H;
+    G(0, 0) = 70;
+    cout << H << endl;
+    cout << G << endl;
+
+    H = std::move(G);
+
+    cout << H << endl;
+
+    // Test: identity()
+    G = Matrix::identity(4);
+    cout << G << endl;
+    G = Matrix::identity(1);
+    cout << G << endl;
+    G = Matrix::identity(0);
+    H = Matrix();
+
+    cout << ((G == H)?"true":"false") << endl;
     
-    madthew.scale_row(0,0.5);
-    std::cout << madthew <<std::endl<<std::endl;
+    G = Matrix::identity(2);
+    H = Matrix({{1, 0}, {0, 1}});
     
-    madthew.add_row_scaled(0, 4, 3);
-    std::cout << madthew <<std::endl<<std::endl;
+    cout << ((G == H)?"true":"false") << endl;
 
 
 
-    // float vals[9] {1, 1, -1, 1, 0, 1, 2, 1, 1};
-    // Matrix mateo = Matrix(3, 3, vals);
-    // float solvals[9] {1, 2, -1, -1, -3, 2, -1, -1, 1};
-    // Matrix solution = Matrix(3, 3, solvals);
 
-    // float vals[4] {-1, 1, 1, 0};
-    // Matrix mateo = Matrix(2, 2, vals);
-    // float solvals[4] {0, 1, 1, 1};
-    // Matrix solution = Matrix(2, 2, solvals);
 
-    // float vals[4] {0, 1, 1, 3};
-    // Matrix mateo = Matrix(2, 2, vals);
-    // float solvals[4] {0, 1, 1, 1};
-    // Matrix solution = Matrix(2, 2, solvals);
+    // Matrix matthew = Matrix(4, 4);
+    // matthew.set(0, 3, 1445.5);
+    // matthew.set(0, 1, 1.5382);
+    // matthew.set(2, 1, 1382);
 
-    Matrix mateo = Matrix(4, 4,
-        "2,5,0,8,"
-        "1,4,2,6,"
-        "7,8,9,3,"
-        "1,5,7,8");
-    Matrix maddox = Matrix(4, 4, 
-        "0.960893854748603,-1.916201117318436,0.078212290502793,0.446927374301676,"
-        "-1.033519553072626,2.357541899441341,0.067039106145251,-0.759776536312849,"
-        "-0.005586592178771,-0.273743016759777,0.011173184357542,0.206703910614525,"
-        "0.53072625698324,-0.994413407821229,-0.06145251396648,0.363128491620112");
+    // Matrix maddie = Matrix::identity(4);
+    // maddie.set(0, 0, 2);
+    // maddie *= 2;
 
-    // mateo.set(vals);
+    // matthew.get(0, 1) += 3;
+
+    // cout << matthew << endl << endl;
+    // cout << maddie << endl << endl;
+    // cout << maddie*matthew << endl<<endl;
+
+    // Matrix madthew = maddie*matthew;
+    // madthew = transpose(madthew);
+    // cout << madthew <<endl<<endl;
+
+    // Test Inverse
+
+    // Matrix mateo = Matrix({
+    //     {2,5,0,8},
+    //     {1,4,2,6},
+    //     {7,8,9,3},
+    //     {1,5,7,8}});
+    // Matrix maddox = Matrix({
+    //     {0.960893854748603,-1.916201117318436,0.078212290502793,0.446927374301676},
+    //     {-1.033519553072626,2.357541899441341,0.067039106145251,-0.759776536312849},
+    //     {-0.005586592178771,-0.273743016759777,0.011173184357542,0.206703910614525},
+    //     {0.53072625698324,-0.994413407821229,-0.06145251396648,0.363128491620112}});
+
+    // // mateo.set(vals);
     
-    Matrix oetam = mateo.inverse();
-    std::cout << std::endl << mateo << std::endl << std::endl;
+    // Matrix oetam = inverse(mateo);
+    // cout << endl << mateo << endl << endl;
 
-    std::cout << (oetam == maddox ? "Correct" : "Incorrect") << std::endl;
-    std::cout << oetam << std::endl;
+    // cout << (oetam == maddox ? "Correct" : "Incorrect") << endl;
+    // cout << oetam << endl;
 
     return 0;
 }

@@ -62,40 +62,71 @@ template <class t> std::ostream& operator<<(std::ostream& s, Vec3<t>& v) {
 // ------------------------------------------------------------------------------------
 
 class Matrix {
+private:
+	// Matrix represented as an array of entries
 	float* m;
-	const int rows, cols;
-	int getindex(int r, int c) const;
+	int rows, cols;
 
-	// in-place row operations
-public:
-	Matrix();
-	Matrix(int r, int c);
-	Matrix(int r, int c, float vals[]);
-	Matrix(int r, int c, std::string vals);
-	Matrix(const Matrix& mat);
-	static Matrix identity(int size);
-	~Matrix();
+	// get the index of m that represents element (r, c)
+	inline int getindex(int r, int c) const {return c + r*cols;}
 
-	float& get(int r, int c) const;
-	void set(int r, int c, float val);
-	void set(float vals[]);
-	int nrows() const {return rows;}
-	int ncols() const {return cols;}
-
+	// Row operations for gaussian elimination
 	void scale_row(int r, float s);
-	void add_row_scaled(int from, float scale, int to);
+	void add_row_scaled(float s, int from, int to);
 	void swap_rows(int r1, int r2);
 
-	Matrix transpose() const;
-	Matrix inverse() const;
+	float& get(int r, int c) const {return m[getindex(r, c)];}
 
-	Matrix operator*(const Matrix& b) const;
-	Matrix operator*(const float b) const;
-	Matrix& operator=(const Matrix& m);
-	Matrix& operator*=(const float b);
-	bool operator==(const Matrix& b) const;
-	bool operator!=(const Matrix& b) const;
-	friend std::ostream& operator<<(std::ostream& s, const Matrix& m);
+public:
+	// Constructors and Destructor
+	Matrix();
+	Matrix(int r, int c);
+	Matrix(std::initializer_list<std::initializer_list<float>>);
+	~Matrix();
+
+	// Copy and move constructors
+	Matrix(const Matrix&);
+	Matrix(Matrix&&);
+
+	// Alternate constructor, constructs identity natrix
+	static Matrix identity(int size);
+
+	// Get functions
+	inline float& operator()(int r, int c) const {return m[getindex(r, c)];}
+	inline int nrows() const {return rows;}
+	inline int ncols() const {return cols;}
+
+	// Convert To String
+	std::string to_string() const;
+
+	// Assignment operators
+	Matrix& operator=(const Matrix&);
+	Matrix& operator=(Matrix&&);
+	Matrix& operator+=(float);
+	Matrix& operator-=(float);
+	Matrix& operator*=(float);
+	Matrix& operator*=(const Matrix&);
+	Matrix& operator/=(float);
+	
+	// Friends!!! :D <3
+	friend std::ostream& operator<<(std::ostream& s, const Matrix& M);
+	friend Matrix transpose(const Matrix&);
+	friend Matrix inverse(const Matrix&);
 };
+
+// Arithmetic Operators
+Matrix operator+(const Matrix& A, float b);
+Matrix operator-(const Matrix& A, float b);
+Matrix operator*(const Matrix& A, float b);
+Matrix operator*(const Matrix& A, const Matrix& B);
+Matrix operator/(const Matrix& A, float b);
+
+// Comparison Operators
+bool operator==(const Matrix& A, const Matrix& B);
+bool operator!=(const Matrix& A, const Matrix& B);
+
+// Special Matrix Operations
+Matrix transpose(const Matrix&);
+Matrix inverse(const Matrix&);
 
 #endif //__GEOMETRY_H__
