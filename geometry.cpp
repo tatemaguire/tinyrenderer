@@ -2,11 +2,8 @@
 // September 3, 2025
 
 #include "geometry.h"
-#include <vector>
 #include <cmath>
-#include <limits>
 #include <cassert>
-#include <sstream>
 
 ///////////////////////// Private Row Operations //////////////////////////
 
@@ -84,8 +81,6 @@ Matrix::Matrix(const Matrix& M):
             get(i, j) = M.get(i, j);
         }
     }
-
-    std::cout << "Matrix Copy Constructor" << std::endl;
 }
 
 // Move Constructor
@@ -95,8 +90,6 @@ Matrix::Matrix(Matrix&& M):
     std::swap(m, M.m);
     std::swap(rows, M.rows);
     std::swap(cols, M.cols);
-
-    std::cout << "Matrix Move Constructor" << std::endl;
 }
 
 // Alternate Constructor: Identity Matrix
@@ -111,17 +104,18 @@ Matrix Matrix::identity(int size) {
 
 //////////////////// Convert To String //////////////////////
 
-// TODO: make it so empty lists have both brackets, make it so last element doesn't have comma after it
-std::string Matrix::to_string() const {
+// convert to string where each val has char length 'digits'
+std::string Matrix::to_string(int digits=5) const {
     std::string s{'['};
+    if (rows*cols == 0) return s + ']';
     for (int r=0; r<rows; r++) {
         for (int c=0; c<cols; c++) {
             float val = get(r, c);
             if (val == 0) val = 0; // turn negative zero into positive zero
-            s += std::to_string(val).substr(0,5);
-            s += (c == cols-1 ? "," : ", ");
+            s += std::to_string(val).substr(0, digits);
+            s += (c == cols-1 ? "" : ", ");
         }
-        s += (r == rows-1 ? "]" : "\n ");
+        s += (r == rows-1 ? "]" : ",\n ");
     }
     return s;
 }
@@ -140,8 +134,6 @@ Matrix& Matrix::operator=(const Matrix& M) {
         // temp is destroyed here
     }
 
-    std::cout << "Matrix Copy Assignment" << std::endl;
-
     return *this;
 }
 
@@ -158,8 +150,6 @@ Matrix& Matrix::operator=(Matrix&& M) {
         M.rows = 0;
         M.cols = 0;
     }
-
-    std::cout << "Matrix Move Assignment" << std::endl;
     
     return *this;
 }
@@ -168,39 +158,54 @@ Matrix& Matrix::operator=(Matrix&& M) {
 
 // In-place addition
 Matrix& Matrix::operator+=(float b) {
-
+    for (float& val : *this) {
+        val += b;
+    }
+    return *this;
 }
 
 // In-place subtraction
 Matrix& Matrix::operator-=(float b) {
-
+    for (float& val : *this) {
+        val -= b;
+    }
+    return *this;
 }
 
 // In-place scalar multiplication
 Matrix& Matrix::operator*=(float b) {
-    Matrix c = *this * b;
-    return *this = c;
+    for (float& val : *this) {
+        val *= b;
+    }
+    return *this;
 }
 
 // In-place matrix multiplication
 Matrix& Matrix::operator*=(const Matrix& M) {
-    if (this->cols != M.rows) throw std::domain_error("Matrix operator *=: invalid matrix sizes");
-    Matrix P = Matrix(this->rows, M.cols);
-    for (int i=0; i<this->rows; i++) {
-        for (int j=0; j<M.cols; j++) {
-            float product {0};
-            for (int k=0; k<this->cols; k++) { //reminder: this->cols == M.rows
-                product += this->get(i, k) * M.get(k, j);
-            }
-            P.get(i, j) = product;
-        }
-    }
-    return *this = P;
+    return *this = *this * M;
 }
 
 // In-place scalar division
 Matrix& Matrix::operator/=(float b) {
+    float reciprocal = 1.f/b;
+    for (float& val : *this) {
+        val *= reciprocal;
+    }
+    return *this;
+}
 
+////////////////// Standard Container Functions ///////////////
+
+int Matrix::size() const {
+    return rows*cols;
+}
+
+float* Matrix::begin() const {
+    return m;
+}
+
+float* Matrix::end() const {
+    return m + rows*cols;
 }
 
 //////////////////// Insertion Operator ////////////////////
@@ -211,34 +216,41 @@ std::ostream& operator<<(std::ostream& s, const Matrix& M) {
 
 //////////////////// Arithmetic Operators ////////////////
 
-// Matrix operator*(const float b) const {
-//     Matrix c = Matrix(this->rows, this->cols);
-//     for (int i=0; i<c.nrows(); i++) {
-//         for (int j=0; j<c.ncols(); j++) {
-//             c.set(i, j, this->get(i, j) * b);
-//         }
-//     }
-//     return c;
-// }
-
 Matrix operator+(const Matrix& A, float b) {
-
+    Matrix M = A;
+    return M += b;
 }
 
 Matrix operator-(const Matrix& A, float b) {
-
+    Matrix M = A;
+    return M -= b;
 }
 
 Matrix operator*(const Matrix& A, float b) {
-
+    Matrix M = A;
+    return M *= b;
 }
 
 Matrix operator*(const Matrix& A, const Matrix& B) {
+    if (A.ncols() != B.nrows()) throw std::domain_error("Matrix multiplication: matrices don't match in size");
 
+    Matrix C = Matrix(A.nrows(), B.ncols());
+    for (int i=0; i<C.nrows(); i++) {
+        for (int j=0; j<C.ncols(); j++) {
+            float product{0};
+            for (int k=0; k<A.ncols(); k++) {
+                product += A(k, i) * B(j, k);
+            }
+            C(i, j) = product;
+        }
+    }
+
+    return C;
 }
 
 Matrix operator/(const Matrix& A, float b) {
-
+    Matrix M = A;
+    return M /= b;
 }
 
 /////////////// Comparison Operators ////////////////
@@ -309,8 +321,6 @@ Matrix inverse(const Matrix& M) {
         float scale = 1.f/A(current_row, col);
         A.scale_row(current_row, scale);
         B.scale_row(current_row, scale);
-
-        // std::cout << current_row << ": \n" << A << std::endl << std::endl;
 
         current_row++;
         if (current_row == size) break;

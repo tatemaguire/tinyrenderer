@@ -45,50 +45,38 @@ int main(int argc, char* argv[]) {
     H = Matrix({{1, 0}, {0, 1}});
     
     cout << ((G == H)?"true":"false") << endl;
+    H *= 2;
 
+    cout << G << endl;
+    cout << (G += 5) << endl;
+    cout << (G -= 0.1) << endl;
+    cout << (G *= 0.5) << endl << endl;
+    cout << (G *= H) << endl;
+    cout << (G /= 3) << endl;
 
-
-
-
-    // Matrix matthew = Matrix(4, 4);
-    // matthew.set(0, 3, 1445.5);
-    // matthew.set(0, 1, 1.5382);
-    // matthew.set(2, 1, 1382);
-
-    // Matrix maddie = Matrix::identity(4);
-    // maddie.set(0, 0, 2);
-    // maddie *= 2;
-
-    // matthew.get(0, 1) += 3;
-
-    // cout << matthew << endl << endl;
-    // cout << maddie << endl << endl;
-    // cout << maddie*matthew << endl<<endl;
-
-    // Matrix madthew = maddie*matthew;
-    // madthew = transpose(madthew);
-    // cout << madthew <<endl<<endl;
+    H = G / 7;
+    cout << H << endl;
 
     // Test Inverse
 
-    // Matrix mateo = Matrix({
-    //     {2,5,0,8},
-    //     {1,4,2,6},
-    //     {7,8,9,3},
-    //     {1,5,7,8}});
-    // Matrix maddox = Matrix({
-    //     {0.960893854748603,-1.916201117318436,0.078212290502793,0.446927374301676},
-    //     {-1.033519553072626,2.357541899441341,0.067039106145251,-0.759776536312849},
-    //     {-0.005586592178771,-0.273743016759777,0.011173184357542,0.206703910614525},
-    //     {0.53072625698324,-0.994413407821229,-0.06145251396648,0.363128491620112}});
+    Matrix mateo = Matrix({
+        {2,5,0,8},
+        {1,4,2,6},
+        {7,8,9,3},
+        {1,5,7,8}});
+    Matrix maddox = Matrix({
+        {0.960893854748603,-1.916201117318436,0.078212290502793,0.446927374301676},
+        {-1.033519553072626,2.357541899441341,0.067039106145251,-0.759776536312849},
+        {-0.005586592178771,-0.273743016759777,0.011173184357542,0.206703910614525},
+        {0.53072625698324,-0.994413407821229,-0.06145251396648,0.363128491620112}});
 
-    // // mateo.set(vals);
+    // mateo.set(vals);
     
-    // Matrix oetam = inverse(mateo);
-    // cout << endl << mateo << endl << endl;
+    Matrix oetam = inverse(mateo);
+    cout << endl << mateo << endl << endl;
 
-    // cout << (oetam == maddox ? "Correct" : "Incorrect") << endl;
-    // cout << oetam << endl;
+    cout << (oetam == maddox ? "Correct" : "Incorrect") << endl;
+    cout << oetam.to_string(8) << endl;
 
     return 0;
 }

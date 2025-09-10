@@ -97,7 +97,7 @@ public:
 	inline int ncols() const {return cols;}
 
 	// Convert To String
-	std::string to_string() const;
+	std::string to_string(int digits) const;
 
 	// Assignment operators
 	Matrix& operator=(const Matrix&);
@@ -107,6 +107,11 @@ public:
 	Matrix& operator*=(float);
 	Matrix& operator*=(const Matrix&);
 	Matrix& operator/=(float);
+
+	// Container Functions
+	int size() const;
+	float* begin() const;
+	float* end() const;
 	
 	// Friends!!! :D <3
 	friend std::ostream& operator<<(std::ostream& s, const Matrix& M);
