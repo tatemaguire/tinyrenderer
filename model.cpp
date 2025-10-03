@@ -8,13 +8,18 @@
 #include <vector>
 #include "model.h"
 
-Model::Model(const char *filename) : verts_(), texture_verts_(), normal_verts_(), faces_(), min(), max() {
+Model::Model(const char *obj_filename, const char* uv_filename) : 
+    verts_(), texture_verts_(), normal_verts_(), faces_(), min(), max(), uv_image()
+{
+    // find min and max coordinates
     for (int i=0; i<3; i++) {
         min.raw[i] = std::numeric_limits<float>::max();
         max.raw[i] = std::numeric_limits<float>::lowest();
     }
+
+    // parse obj file to verts_, texture_verts_, normal_verts_, and faces_
     std::ifstream in;
-    in.open (filename, std::ifstream::in);
+    in.open(obj_filename, std::ifstream::in);
     if (in.fail()) return;
     std::string line;
     while (!in.eof()) {
@@ -52,7 +57,13 @@ Model::Model(const char *filename) : verts_(), texture_verts_(), normal_verts_()
             faces_.push_back(f);
         }
     }
+
+    // print model size
     std::cerr << "# v# " << verts_.size() << " f# "  << faces_.size() << std::endl;
+
+    // read uv_image and flip for compatibility
+    uv_image.read_tga_file(uv_filename);
+    uv_image.flip_vertically();
 }
 
 Model::~Model() {

@@ -86,7 +86,7 @@ void rasterize(Vec3f world_pos[], int* zbuffer, Vec2f vt[], TGAImage& model_uv, 
 }
 
 // draws the model using the light_source vector, describing light's direction as a normalized vec3f
-void render(Model& model, TGAImage& model_uv, TGAImage& image, Vec3f light_source, Vec3f camera_pos) {
+void render(Model& model, TGAImage& image, Vec3f light_source, Vec3f camera_pos) {
 	int w = image.get_width();
 	int h = image.get_height();
 	
@@ -117,7 +117,7 @@ void render(Model& model, TGAImage& model_uv, TGAImage& image, Vec3f light_sourc
 		float light_level = normal*(Vec3f()-light_source);
 		if (light_level<=0) continue;
 
-        rasterize(world_pos, zbuffer, vt, model_uv, image, light_level, scale, camera_pos);
+        rasterize(world_pos, zbuffer, vt, model.uv_image, image, light_level, scale, camera_pos);
     }
 
 	delete[] zbuffer;
