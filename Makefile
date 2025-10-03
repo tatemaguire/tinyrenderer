@@ -17,8 +17,8 @@ $(OBJECTS): %.o: %.cpp
 	$(SYSCONF_LINK) -Wall $(CPPFLAGS) -c $(CFLAGS) $< -o $@
 
 preview: $(DESTDIR)$(TARGET)
-	$(DESTDIR)$(TARGET)
-	open *.tga
+	$(DESTDIR)$(TARGET) obj/african_head/african_head.obj obj/african_head/african_head_diffuse.tga output.tga
+	open output.tga
 
 $(DESTDIR)matrixTest: matrixTest.o geometry.o
 	$(SYSCONF_LINK) -Wall $(LDFLAGS) -o $@ $^ $(LIBS)
@@ -27,5 +27,5 @@ clean:
 	-rm -f $(OBJECTS)
 	-rm -f $(TARGET)
 	-rm -f matrixTest
-	-rm -f *.tga
+	-rm -f output.tga
 

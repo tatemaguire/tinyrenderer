@@ -86,7 +86,7 @@ void rasterize(Vec3f world_pos[], int* zbuffer, Vec2f vt[], TGAImage& model_uv, 
 }
 
 // draws the model using the light_source vector, describing light's direction as a normalized vec3f
-void render(Model* model, TGAImage& model_uv, TGAImage& image, Vec3f light_source, Vec3f camera_pos) {
+void render(Model& model, TGAImage& model_uv, TGAImage& image, Vec3f light_source, Vec3f camera_pos) {
 	int w = image.get_width();
 	int h = image.get_height();
 	
@@ -101,13 +101,13 @@ void render(Model* model, TGAImage& model_uv, TGAImage& image, Vec3f light_sourc
 	// calculate scale
 	float scale = image.get_width()/2;
 
-	for (int i=0; i<model->nfaces(); i++) {
-        std::vector<Vec3i> f = model->face(i);
+	for (int i=0; i<model.nfaces(); i++) {
+        std::vector<Vec3i> f = model.face(i);
 		Vec3f world_pos[3];
 		Vec2f vt[3];
 		for (int i=0; i<3; i++) {
-			world_pos[i] = model->vert(f[i].ivert);
-			vt[i] = model->texture_vert(f[i].iuv);
+			world_pos[i] = model.vert(f[i].ivert);
+			vt[i] = model.texture_vert(f[i].iuv);
 		}
 		// calculate the normal. the direction of the triangle's face
 		Vec3f normal = (world_pos[1]-world_pos[0])^(world_pos[2]-world_pos[0]);
