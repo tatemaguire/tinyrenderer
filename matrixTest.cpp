@@ -7,10 +7,13 @@
 using std::cout;
 using std::endl;
 
-int main(int argc, char* argv[]) {
+// THESE TESTS ARE KINDA LAME
+// They aren't self-checking and I didn't think much about edge cases
+// But hey it's something!
 
+int matrixTest(int argc, char* argv[]) {
 
-    Matrix H = Matrix({
+    Matrix<float> H({
         {2,5,0,8},
         {1,4,2,6},
         {7,8,9,3},
@@ -19,8 +22,15 @@ int main(int argc, char* argv[]) {
     cout << H << endl;
     
     // Test: Empty matrix
-    Matrix G;
+    Matrix<float> G(4,4);
     cout << G << endl;
+
+    // Test: Identity matrix
+    Matrix<int> I = Matrix<int>::identity(10);
+    cout << I << endl;
+    I -= 2;
+    cout << I << endl;
+
     // Test: Copy assignment
     G = H;
     G(0, 0) = 70;
@@ -31,40 +41,39 @@ int main(int argc, char* argv[]) {
 
     cout << H << endl;
 
-    // Test: identity()
-    G = Matrix::identity(4);
-    cout << G << endl;
-    G = Matrix::identity(1);
-    cout << G << endl;
-    G = Matrix::identity(0);
-    H = Matrix();
 
+    H = Matrix<float>();
     cout << ((G == H)?"true":"false") << endl;
     
-    G = Matrix::identity(2);
-    H = Matrix({{1, 0}, {0, 1}});
+    Matrix<double> A = Matrix<double>::identity(2);
+    Matrix<double> B = Matrix<double>({{1,0}, {0,1}});
     
-    cout << ((G == H)?"true":"false") << endl;
-    H *= 2;
+    cout << ((A == B)?"true":"false") << endl;
 
-    cout << G << endl;
-    cout << (G += 5) << endl;
-    cout << (G -= 0.1) << endl;
-    cout << (G *= 0.5) << endl << endl;
-    cout << (G *= H) << endl;
-    cout << (G /= 3) << endl;
+    // iterator tests
+    for (double& val : A) {
+        val += 2;
+    }
+    for (double& val : B) {
+        val *= 3;
+    }
+    cout << A << endl;
+    cout << A*B << endl;
 
-    H = G / 7;
-    cout << H << endl;
+    // scalar arithmetic tests
+    cout << "A += 8\n" <<  (A += 8) << endl;
+    cout << "A /= 2\n" <<  (A /= 2) << endl;
+    cout << "A = 4 - H\n" <<  (A = 4. - A) << endl;
+    cout << "A = 12 / H\n" << (A = 12. / A) << endl;
 
     // Test Inverse
 
-    Matrix mateo = Matrix({
+    Matrix<float> mateo({
         {2,5,0,8},
         {1,4,2,6},
         {7,8,9,3},
         {1,5,7,8}});
-    Matrix maddox = Matrix({
+    Matrix<float> maddox({
         {0.960893854748603,-1.916201117318436,0.078212290502793,0.446927374301676},
         {-1.033519553072626,2.357541899441341,0.067039106145251,-0.759776536312849},
         {-0.005586592178771,-0.273743016759777,0.011173184357542,0.206703910614525},
@@ -72,7 +81,7 @@ int main(int argc, char* argv[]) {
 
     // mateo.set(vals);
     
-    Matrix oetam = inverse(mateo);
+    Matrix<float> oetam = inverse(mateo);
     cout << endl << mateo << endl << endl;
 
     cout << (oetam == maddox ? "Correct" : "Incorrect") << endl;
