@@ -77,8 +77,11 @@ public:
 
 	static Matrix identity(size_t size);
 
+    double& at(size_t r, size_t c);
+    const double& at(size_t r, size_t c) const;
 	double& operator()(size_t r, size_t c) {return get(r, c);}
 	const double& operator()(size_t r, size_t c) const {return get(r, c);}
+
 	size_t nrows() const {return rows;}
 	size_t ncols() const {return cols;}
     

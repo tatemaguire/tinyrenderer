@@ -25,12 +25,25 @@ Matrix::Matrix(std::initializer_list<std::initializer_list<double>> ilil):
 }
 
 /////////////////// Alternate Constructor //////////////////////////
+
 Matrix Matrix::identity(size_t size) {
     Matrix M = Matrix(size, size);
     for (size_t i=0; i<size; i++) {
         M(i,i) = 1;
     }
     return M;
+}
+
+/////////////////// Range-checked Subscript //////////////////////////
+
+double& Matrix::at(size_t r, size_t c) {
+    if (r < 0 || r >= rows || c < 0 || c >= cols) throw std::out_of_range("Matrix: at(): Arguments are out of range");
+    return get(r, c);
+}
+
+const double& Matrix::at(size_t r, size_t c) const {
+    if (r < 0 || r >= rows || c < 0 || c >= cols) throw std::out_of_range("Matrix: at(): Arguments are out of range");
+    return get(r, c);
 }
 
 //////////////////// Convert To String //////////////////////
@@ -118,6 +131,7 @@ Matrix transpose(const Matrix& M) {
 // Get inverse of matrix if it exists, throw otherwise
 Matrix inverse(const Matrix& M) {
     if (M.nrows() != M.ncols()) throw std::out_of_range("Matrix: inverse(): matrix must be a square matrix (rows==cols)");
+    if (M.nrows() == 0 || M.ncols() == 0) throw std::out_of_range("Matrix: inverse(): matrix cannot be empty");
 
     size_t size = M.nrows();
     Matrix A = M;

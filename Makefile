@@ -24,13 +24,13 @@ preview2: $(DESTDIR)$(TARGET)
 	$(DESTDIR)$(TARGET) obj/diablo3_pose/diablo3_pose.obj obj/diablo3_pose/diablo3_pose_diffuse.tga output.tga
 	open output.tga
 
-$(DESTDIR)matrixTest: matrixTest.o
+$(DESTDIR)test: test.o geometry.o
 	$(SYSCONF_LINK) -Wall $(LDFLAGS) -o $@ $^ $(LIBS)
-	./matrixTest
+	./test
 
 clean:
 	-rm -f $(OBJECTS)
 	-rm -f $(TARGET)
-	-rm -f matrixTest
+	-rm -f test
 	-rm -f output.tga
 
