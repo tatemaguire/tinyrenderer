@@ -8,14 +8,19 @@
 #include "geometry.h"
 #include "model.h"
 
-class RenderEnvironment {
-    private:
-        Matrix<float> transform_matrix; // 4 by 4
-        Vec3f global_light;
-    public:
-        RenderEnvironment(Vec3f global_light);
-        // TODO: finish this class
-};
+// struct RenderEnvironment {
+//         Matrix<float> transform_matrix; // 4 by 4
+//         Vec3f global_light;
+//         int* zbuffer;
+//         RenderEnvironment(int screen_width, int screen_height) {
+//             transform_matrix = Matrix<float>::identity(4);
+//             global_light = Vec3f(0,0,-1);
+//             zbuffer = new int[screen_width * screen_height];
+//         }
+//         ~RenderEnvironment() {
+//             delete zbuffer;
+//         }
+// };
 
 Vec3f barycentric(Vec3f* pts, Vec2i P);
 void triangle(Vec3f pts[], int* zbuffer, Vec2f vt[], TGAImage& model_uv, TGAImage& image, float light_level);
