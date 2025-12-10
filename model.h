@@ -1,5 +1,4 @@
-#ifndef __MODEL_H__
-#define __MODEL_H__
+#pragma once
 
 #include <vector>
 #include "geometry.h"
@@ -29,5 +28,3 @@ public:
 	Vec3f max;
 	TGAImage uv_image;
 };
-
-#endif //__MODEL_H__

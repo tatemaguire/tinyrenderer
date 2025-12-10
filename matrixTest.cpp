@@ -8,5 +8,5 @@ using std::cout;
 using std::endl;
 
 int matrixTest(int argc, char* argv[]) {
-
+    return 0;
 }
