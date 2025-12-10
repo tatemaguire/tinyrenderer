@@ -1,12 +1,6 @@
 // Author: Tate Maguire
-// September 1, 2025
+// December 9, 2025
 
-#include <iostream>
-#include "geometry.h"
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "doctest.h"
 
-using std::cout;
-using std::endl;
-
-int matrixTest(int argc, char* argv[]) {
-    return 0;
-}

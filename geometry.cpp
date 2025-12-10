@@ -1,10 +1,6 @@
 #include "geometry.h"
 
-
 //////////////// Constructors and Destructor //////////////////
-
-// Empty Constructor
-// Matrix::Matrix(): Matrix(0, 0) {}
 
 // Zero Constructor
 Matrix::Matrix(size_t r, size_t c):
