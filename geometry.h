@@ -94,7 +94,7 @@ public:
 	std::string to_string(unsigned char digits=5) const;
 
 	void scale_row(size_t r, double s);
-	void add_row_scaled(double s, size_t from, size_t to);
+	void add_row_scaled(size_t from, double s, size_t to);
 	void swap_rows(size_t r1, size_t r2);
 };
 

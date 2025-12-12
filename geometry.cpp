@@ -65,7 +65,7 @@ std::string Matrix::to_string(unsigned char digits) const {
 }
 
 std::ostream& operator<<(std::ostream& s, const Matrix& M) {
-    return s << M.to_string(5);
+    return s << M.to_string();
 }
 
 ///////////////////////// Row Operations //////////////////////////
@@ -85,7 +85,7 @@ void Matrix::scale_row(size_t r, double s) {
 }
 
 // Add row 'from' times scalar s to row 'to'
-void Matrix::add_row_scaled(double s, size_t from, size_t to) {
+void Matrix::add_row_scaled(size_t from, double s, size_t to) {
     for (size_t i=0; i<cols; i++) {
         double& elem = get(to,i);
         elem += get(from,i) * s;
@@ -130,7 +130,7 @@ Matrix transpose(const Matrix& M) {
 
 // Get inverse of matrix if it exists, throw otherwise
 Matrix inverse(const Matrix& M) {
-    if (M.nrows() != M.ncols()) throw std::out_of_range("Matrix: inverse(): matrix must be a square matrix (rows==cols)");
+    if (M.nrows() != M.ncols()) throw std::domain_error("Matrix: inverse(): matrix must be a square matrix (rows==cols)");
     if (M.nrows() == 0 || M.ncols() == 0) throw std::out_of_range("Matrix: inverse(): matrix cannot be empty");
 
     size_t size = M.nrows();
@@ -156,8 +156,8 @@ Matrix inverse(const Matrix& M) {
         for (size_t row=current_row+1; row<size; row++) {
             if (A(row, col) != 0) {
                 double scale = -A(row, col)/A(current_row, col);
-                A.add_row_scaled(scale, current_row, row);
-                B.add_row_scaled(scale, current_row, row);
+                A.add_row_scaled(current_row, scale, row);
+                B.add_row_scaled(current_row, scale, row);
             }
             assert(A(row, col) == 0);
         }
@@ -178,8 +178,8 @@ Matrix inverse(const Matrix& M) {
                 for (size_t row=current_row-1; row!=(size_t)(-1); row--) {
                     if (A(row, col) != 0) {
                         double scale = -A(row, col)/A(current_row, col);
-                        A.add_row_scaled(scale, current_row, row);
-                        B.add_row_scaled(scale, current_row, row);
+                        A.add_row_scaled(current_row, scale, row);
+                        B.add_row_scaled(current_row, scale, row);
                     }
                     assert(A(row, col) == 0);
                 }
